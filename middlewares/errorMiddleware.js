@@ -1,8 +1,8 @@
 
 const errorHandler = async (err, req, res, next) => {
-    const statuCode = err.statuCode || 500
+    const statusCode = err.statusCode || 500
 
-    res.status(statuCode).json({
+    res.status(statusCode).json({
         success: false,
         message: err.message || "Internal sever error"
     })

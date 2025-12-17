@@ -1,17 +1,15 @@
 import notesModel from "../models/notes.models.js"
 import mongoose from "mongoose"
+import CustomError from "../utils/customError.js"
 
 
-const createNotes = async (req, res) => {
+const createNotes = async (req, res, next) => {
     try {
         const { title, description } = req.body
 
         //check kro title and description aaya hai ya nhii
         if (!title || !description) {
-            return res.status(400).json({
-                success: false,
-                message: "invalid title or description"
-            })
+            return next(new CustomError(400, "Invalid title and description"))
         }
 
         //if client ne send kia h to db me save kro.
@@ -27,124 +25,95 @@ const createNotes = async (req, res) => {
             message: "Notes created successfully.",
             notes: newNotes
         })
-
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error..."
-        })
+        next(error)
     }
 }
 
-const getAllNotes = async (req, res) => {
+const getAllNotes = async (req, res, next) => {
+
     try {
         const notes = await notesModel.find({})
-        return res.status(200).json({
+        res.status(200).json({
             success: true,
             message: "Notes found",
             notes: notes
         })
-    } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "internal server error."
-        })
+    } catch (err) {
+        next(err)
     }
+
 }
 
-const getNotesById = async (req, res) => {
+const getNotesById = async (req, res, next) => {
     try {
-        console.log("1");
         const { id } = req.params;
         //validate kro mongodb id 
-        console.log("2");
+
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "invalid id"
-            })
+            return next(new CustomError(400, "Invalid id"))
         }
-        console.log("3");
 
         const notes = await notesModel.findById(id)
-        console.log("4");
+
         if (!notes) {
-            return res.status(404).json({
-                success: false,
-                message: "notes not found"
-            })
+            return next(new CustomError(404, "Notes not found"))
         }
-        console.log("5");
         return res.status(200).json({
             success: true,
             notes
         })
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "internal server error"
-        })
+        next(error)
     }
 }
 
-const updateNotes = async (req, res) => {
+const updateNotes = async (req, res, next) => {
     try {
         const { id } = req.params;
+
         const { title, description } = req.body
+        if (!title || !description) {
+            return next(new CustomError(400, "Missing fields."))
+        }
 
         //validate the id
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                message: "Invalid id",
-                success: false
-            })
+            return next(new CustomError(400, "Invalid id"))
         }
 
         const result = await notesModel.findByIdAndUpdate(id, { title, description })
 
         if (!result) {
-            return res.status(401).json({
-                message: "failed to update"
-            })
+            return next(new CustomError(404, "Failed to update"))
         }
-        return res.status(201).json({
+        return res.status(200).json({
             success: true,
             message: "updated successfully.."
         })
     } catch (error) {
-        return res.status(500).json({
-            message: "internal sserver error"
-        })
+        next(error)
     }
 }
 
-const deleteById = async (req, res) => {
+const deleteById = async (req, res, next) => {
     try {
         const { id } = req.params
 
         //validate kro. bhai
         if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({
-                success: false,
-                message: "Invalid id"
-            })
+            return next(new CustomError(400, "Invalid id"))
         }
         const result = await notesModel.findByIdAndDelete(id)
         if (!result) {
-            return res.status(404).json({
-                success: false,
-                message: "notes not found"
-            })
+            return next(new CustomError(404, "Notes not found"))
         }
         return res.status(200).json({
             success: true,
             message: "notes deleted successfully"
         })
     } catch (error) {
-        return res.status(500).json({
-            success: false,
-            message: "internal server error"
-        })
+        next(error)
     }
 }
 
