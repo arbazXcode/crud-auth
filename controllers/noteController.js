@@ -6,7 +6,7 @@ const createNotes = async (req, res) => {
         console.log("1");
         //check kro title and description aaya hai ya nhii
         if (!title || !description) {
-            return res.status(401).json({
+            return res.status(400).json({
                 success: false,
                 message: "invalid title or description"
             })
