@@ -88,12 +88,34 @@ const getNotesById = async (req, res) => {
 }
 
 const updateNotes = async (req, res) => {
-    const { id } = req.params;
+    try {
+        const { id } = req.params;
+        const { title, description } = req.body
 
-    //validate the id
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-        return res.status()
+        //validate the id
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                message: "Invalid id",
+                success: false
+            })
+        }
+
+        const result = await notesModel.findByIdAndUpdate(id, { title, description })
+
+        if (!result) {
+            return res.status(401).json({
+                message: "failed to update"
+            })
+        }
+        return res.status(201).json({
+            success: true,
+            message: "updated successfully.."
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "internal sserver error"
+        })
     }
 }
 
-export { createNotes, getAllNotes, getNotesById }
+export { createNotes, getAllNotes, getNotesById, updateNotes }
