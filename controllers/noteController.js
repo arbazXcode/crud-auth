@@ -73,8 +73,13 @@ const updateNotes = async (req, res, next) => {
         const { id } = req.params;
 
         const { title, description } = req.body
-        if (!title || !description) {
-            return next(new CustomError(400, "Missing fields."))
+
+        const updateData = {}
+        if (title) updateData.title = title
+        if (description) updateData.description = description
+
+        if (Object.keys(updateData).length === 0) {
+            return next(new CustomError(400, "Nothing to update..."))
         }
 
         //validate the id
@@ -82,14 +87,16 @@ const updateNotes = async (req, res, next) => {
             return next(new CustomError(400, "Invalid id"))
         }
 
-        const result = await notesModel.findByIdAndUpdate(id, { title, description })
+        const result = await notesModel.findByIdAndUpdate(id, updateData, { new: true, runValidators: true })
+        //new - returns updated one
 
         if (!result) {
             return next(new CustomError(404, "Failed to update"))
         }
         return res.status(200).json({
             success: true,
-            message: "updated successfully.."
+            message: "updated successfully..",
+            note: result
         })
     } catch (error) {
         next(error)
