@@ -1,7 +1,7 @@
 import CustomError from "../utils/customError.js";
 import User from "../models/user.models.js";
 import jwt from "jsonwebtoken"
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 
 const registerUser = async (req, res, next) => {
     try {
@@ -28,7 +28,11 @@ const registerUser = async (req, res, next) => {
             password: hashedPassword
         })
 
-        const token = jwt.sign({ id: newUser._id, email }, process.env.JWT_SECRET, { expiresIn: '7h' })
+        if (!process.env.JWT_SECRET) {
+            return next(new CustomError(500, "JWT SECRET is not defined."))
+        }
+
+        const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: '7h' })
 
         return res.status(201).json({
             success: true,
